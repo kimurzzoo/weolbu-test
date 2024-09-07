@@ -13,3 +13,7 @@ spring:
 
 cipher:
   secret-key: E4rg489weJMi78pf
+
+jwt:
+  secret-key: 345w89oJs49y42u28Q23tFG3498g49WE
+  expiration: 180000

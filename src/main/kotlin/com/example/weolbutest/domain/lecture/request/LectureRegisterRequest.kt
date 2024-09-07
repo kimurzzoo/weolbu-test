@@ -6,13 +6,13 @@ import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
 
 class LectureRegisterRequest(
-	@NotBlank
+	@field:NotBlank
 	var name: String,
 
-	@Positive
+	@field:Positive
 	var maxStudentCnt: Int,
 
-	@PositiveOrZero
+	@field:PositiveOrZero
 	var price: Long
 ) {
 	fun toLecture(teacherId: Long): Lecture {

@@ -2,15 +2,15 @@ package com.example.weolbutest.auth.service
 
 import com.example.weolbutest.db.repository.auth.MemberRepository
 import com.example.weolbutest.domain.auth.enum.MemberType
-import com.example.weolbutest.domain.auth.model.MemberDetails
 import com.example.weolbutest.domain.auth.request.MemberRegisterRequest
 import com.example.weolbutest.domain.auth.service.MemberService
+import com.example.weolbutest.domain.auth.util.AuthUtil
+import com.example.weolbutest.domain.auth.util.JwtProvider
 import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.authentication.BadCredentialsException
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
 
@@ -24,6 +24,9 @@ class MemberServiceTest {
 
 	@Autowired
 	lateinit var memberRepository: MemberRepository
+
+	@Autowired
+	lateinit var jwtProvider: JwtProvider
 
 	var memberRegisterRequest = MemberRegisterRequest(
 		name = "김영호",
@@ -82,20 +85,24 @@ class MemberServiceTest {
 	@Nested
 	@DisplayName("로그인 테스트")
 	inner class LoginTest {
+		@BeforeEach
+		fun setup() {
+			memberService.register(memberRegisterRequest)
+		}
+
 		@Test
 		fun `정상적인 경우`() {
-			memberService.register(memberRegisterRequest)
-			memberService.login(memberRegisterRequest.email, memberRegisterRequest.password)
+			val res = memberService.login(memberRegisterRequest.email, memberRegisterRequest.password)
 
-			val memberDetails = SecurityContextHolder.getContext().authentication.principal as MemberDetails
-			val member = memberDetails.member
+			val member = AuthUtil.getMember()
 			assertEquals(memberRegisterRequest.email, member.email)
 			assertEquals(MemberType.valueOf(memberRegisterRequest.memberType), member.memberType)
+
+			assertEquals(member.email, jwtProvider.getEmail(res.accessToken))
 		}
 
 		@Test
 		fun `비밀번호가 틀린 경우`() {
-			memberService.register(memberRegisterRequest)
 			assertThrows<BadCredentialsException> {
 				memberService.login(memberRegisterRequest.email, "123")
 			}
@@ -103,7 +110,6 @@ class MemberServiceTest {
 
 		@Test
 		fun `이메일과 일치하는 회원이 없는 경우`() {
-			memberService.register(memberRegisterRequest)
 			assertThrows<BadCredentialsException> {
 				memberService.login("youngho.kim@gmail.com", memberRegisterRequest.password)
 			}

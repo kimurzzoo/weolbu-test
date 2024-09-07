@@ -19,7 +19,7 @@ import kotlin.test.assertEquals
 
 @SpringBootTest
 @Transactional
-@DisplayName("강의 관련 테스트")
+@DisplayName("강의 관련 서비스 테스트")
 class LectureServiceTest {
 
 	@Autowired

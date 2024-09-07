@@ -1,18 +1,21 @@
 package com.example.weolbutest.config
 
+import com.example.weolbutest.domain.auth.enum.MemberType
+import com.example.weolbutest.filter.auth.JwtFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig {
+class SecurityConfig(private val jwtFilter: JwtFilter) {
 
 	@Bean
 	fun filterChain(
@@ -30,9 +33,13 @@ class SecurityConfig {
 					SessionCreationPolicy.ALWAYS
 				)
 			}
+			.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter::class.java)
 			.authorizeHttpRequests { authRequest ->
 				authRequest
-					.anyRequest().permitAll()
+					.requestMatchers("/h2-console/**").permitAll()
+					.requestMatchers("/member/**").permitAll()
+					.requestMatchers("/lecture/teacher/**").hasAuthority("ROLE_${MemberType.TEACHER.name}")
+					.anyRequest().authenticated()
 			}
 
 		return http.build()
