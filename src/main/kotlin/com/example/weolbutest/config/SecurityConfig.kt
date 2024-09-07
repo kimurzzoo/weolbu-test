@@ -24,13 +24,15 @@ class SecurityConfig {
 			.cors { cors -> cors.configurationSource(corsConfigurationSource()) }
 			.formLogin { formLogin -> formLogin.disable() }
 			.httpBasic { httpBasic -> httpBasic.disable() }
+			.headers { it.frameOptions { option -> option.sameOrigin() } }
 			.sessionManagement { sessionManager ->
 				sessionManager.sessionCreationPolicy(
 					SessionCreationPolicy.ALWAYS
 				)
 			}
 			.authorizeHttpRequests { authRequest ->
-				authRequest.requestMatchers("/**").permitAll()
+				authRequest
+					.anyRequest().permitAll()
 			}
 
 		return http.build()

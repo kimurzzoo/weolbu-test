@@ -1,4 +1,4 @@
-package com.example.weolbutest.auth.model
+package com.example.weolbutest.domain.auth.model
 
 import com.example.weolbutest.db.entity.auth.Member
 import org.springframework.security.core.authority.AuthorityUtils
@@ -10,4 +10,5 @@ class MemberDetails(member: Member) :
 		member.password,
 		AuthorityUtils.createAuthorityList("ROLE_${member.memberType.name}")
 	) {
+	val member: Member = member
 }

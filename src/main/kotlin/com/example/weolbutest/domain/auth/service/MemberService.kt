@@ -1,8 +1,8 @@
-package com.example.weolbutest.auth.service
+package com.example.weolbutest.domain.auth.service
 
-import com.example.weolbutest.auth.request.MemberRegisterRequest
 import com.example.weolbutest.db.cipher.BCryptPasswordEncoder
-import com.example.weolbutest.db.repository.MemberRepository
+import com.example.weolbutest.db.repository.auth.MemberRepository
+import com.example.weolbutest.domain.auth.request.MemberRegisterRequest
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.core.Authentication
@@ -18,8 +18,8 @@ class MemberService(
 ) {
 
 	@Transactional
-	fun register(memberRegisterRequest: MemberRegisterRequest) {
-		val member = memberRegisterRequest.toMember()
+	fun register(req: MemberRegisterRequest) {
+		val member = req.toMember()
 		member.password = bCryptPasswordEncoder.encode(member.password)
 		memberRepository.save(member)
 	}

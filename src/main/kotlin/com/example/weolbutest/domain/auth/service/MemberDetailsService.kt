@@ -1,7 +1,7 @@
-package com.example.weolbutest.auth.service
+package com.example.weolbutest.domain.auth.service
 
-import com.example.weolbutest.auth.model.MemberDetails
-import com.example.weolbutest.db.repository.MemberRepository
+import com.example.weolbutest.domain.auth.model.MemberDetails
+import com.example.weolbutest.db.repository.auth.MemberRepository
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException

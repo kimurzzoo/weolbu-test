@@ -1,4 +1,4 @@
-package com.example.weolbutest.db.repository
+package com.example.weolbutest.db.repository.auth
 
 import com.example.weolbutest.db.entity.auth.Member
 import org.springframework.data.jpa.repository.JpaRepository
