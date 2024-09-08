@@ -14,53 +14,60 @@ import org.springframework.data.redis.core.ValueOperations
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
+import java.sql.SQLException
 
 
 @Service
 class LectureService(
 	private val lectureRepository: LectureRepository,
 	private val enrollLectureRepository: EnrollLectureRepository,
-	private val redisTemplate: RedisTemplate<String, Int>
+	private val redisTemplate: RedisTemplate<String, Any>
 ) {
-	val valueOperations: ValueOperations<String, Int> = redisTemplate.opsForValue()
+	val valueOperations: ValueOperations<String, Any> = redisTemplate.opsForValue()
 
 	@Transactional(rollbackFor = [Exception::class])
 	fun register(teacherId: Long, req: LectureRegisterRequest) {
 		val lecture = lectureRepository.save(req.toLecture(teacherId))
-		valueOperations.set("lecture:${lecture.id!!}", lecture.maxStudentCnt)
+		valueOperations.set("lecture:${lecture.id!!}", lecture.maxStudentCnt.toString())
 	}
 
 	@Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = [Exception::class])
 	fun enroll(studentId: Long, lectureList: List<Long>): LectureEnrollResponse {
-
-
-		val lectureEntityList = lectureRepository.findByIdInAndIsDeletedFalse(lectureList)
-		if (lectureEntityList.size != lectureList.size) {
-			throw IllegalArgumentException("Invalid Lecture")
-		}
-
 		val enrollList = mutableListOf<EnrollLecture>()
 		val notEnrolledList = mutableListOf<String>()
 
-		lectureEntityList.forEach {
-			try {
-				valueOperations.decrement("lecture:${it.id!!}")
-
-				enrollList.add(
-					EnrollLecture(
-						it.id!!,
-						studentId
-					)
-				)
-			} catch (e: Exception) {
-				notEnrolledList.add(it.name)
+		try {
+			val lectureEntityList = lectureRepository.findByIdInAndIsDeletedFalse(lectureList)
+			if (lectureEntityList.size != lectureList.size) {
+				throw IllegalArgumentException("Invalid Lecture")
 			}
+
+			lectureEntityList.forEach {
+				val currentCnt = valueOperations.decrement("lecture:${it.id!!}")
+				if (currentCnt == null || currentCnt < 0) {
+					valueOperations.increment("lecture:${it.id!!}")
+					notEnrolledList.add(it.name)
+				} else {
+					enrollList.add(
+						EnrollLecture(
+							it.id!!,
+							studentId
+						)
+					)
+				}
+			}
+
+			enrollLectureRepository.saveAll(enrollList)
+			return LectureEnrollResponse(
+				notEnrolled = notEnrolledList
+			)
+		} catch (e: Exception) {
+			enrollList.forEach {
+				valueOperations.increment("lecture:${it.id!!}")
+			}
+			throw SQLException()
 		}
 
-		enrollLectureRepository.saveAll(enrollList)
-		return LectureEnrollResponse(
-			notEnrolled = notEnrolledList
-		)
 	}
 
 	@Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true, noRollbackFor = [Exception::class])
