@@ -32,6 +32,7 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("com.querydsl:querydsl-jpa:5.1.0:jakarta")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	kapt("com.querydsl:querydsl-apt:5.1.0:jakarta")
 	kapt("jakarta.annotation:jakarta.annotation-api")
 	kapt("jakarta.persistence:jakarta.persistence-api")
