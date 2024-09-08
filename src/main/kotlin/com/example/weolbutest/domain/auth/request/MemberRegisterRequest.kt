@@ -2,7 +2,7 @@ package com.example.weolbutest.domain.auth.request
 
 import com.example.weolbutest.aop.validation.ValidEnum
 import com.example.weolbutest.db.entity.auth.Member
-import com.example.weolbutest.domain.auth.enum.MemberType
+import com.example.weolbutest.domain.auth.enm.MemberType
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern

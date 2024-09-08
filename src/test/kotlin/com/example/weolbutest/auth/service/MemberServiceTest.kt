@@ -1,7 +1,7 @@
 package com.example.weolbutest.auth.service
 
 import com.example.weolbutest.db.repository.auth.MemberRepository
-import com.example.weolbutest.domain.auth.enum.MemberType
+import com.example.weolbutest.domain.auth.enm.MemberType
 import com.example.weolbutest.domain.auth.request.MemberRegisterRequest
 import com.example.weolbutest.domain.auth.service.MemberService
 import com.example.weolbutest.domain.auth.util.AuthUtil

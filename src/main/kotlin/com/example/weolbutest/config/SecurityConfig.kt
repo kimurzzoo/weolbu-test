@@ -1,6 +1,6 @@
 package com.example.weolbutest.config
 
-import com.example.weolbutest.domain.auth.enum.MemberType
+import com.example.weolbutest.domain.auth.enm.MemberType
 import com.example.weolbutest.filter.auth.JwtFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

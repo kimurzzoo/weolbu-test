@@ -2,7 +2,7 @@ package com.example.weolbutest.db.entity.auth
 
 import com.example.weolbutest.db.cipher.DataConverter
 import com.example.weolbutest.db.entity.common.DateEntity
-import com.example.weolbutest.domain.auth.enum.MemberType
+import com.example.weolbutest.domain.auth.enm.MemberType
 import jakarta.persistence.*
 
 @Entity
