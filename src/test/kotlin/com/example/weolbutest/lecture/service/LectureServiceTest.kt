@@ -1,5 +1,6 @@
 package com.example.weolbutest.lecture.service
 
+import com.example.weolbutest.db.repository.auth.MemberRepository
 import com.example.weolbutest.db.repository.lecture.EnrollLectureRepository
 import com.example.weolbutest.db.repository.lecture.LectureRepository
 import com.example.weolbutest.domain.auth.enm.MemberType
@@ -10,15 +11,14 @@ import com.example.weolbutest.domain.lecture.enm.LectureListOrderType
 import com.example.weolbutest.domain.lecture.request.LectureRegisterRequest
 import com.example.weolbutest.domain.lecture.service.LectureService
 import com.example.weolbutest.domain.lecture.value.LectureValue.Companion.lectureListPageLimit
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.transaction.annotation.Transactional
 import kotlin.test.assertEquals
+
 
 @SpringBootTest
 @Transactional
@@ -32,10 +32,16 @@ class LectureServiceTest {
 	lateinit var lectureService: LectureService
 
 	@Autowired
+	lateinit var memberRepository: MemberRepository
+
+	@Autowired
 	lateinit var lectureRepository: LectureRepository
 
 	@Autowired
 	lateinit var enrollLectureRepository: EnrollLectureRepository
+
+	@Autowired
+	lateinit var redisTemplate: RedisTemplate<String, Any>
 
 	var memberRegisterRequest = MemberRegisterRequest(
 		name = "김영호",
@@ -63,34 +69,15 @@ class LectureServiceTest {
 
 	val lectureRegisterRequestList = mutableListOf<LectureRegisterRequest>()
 
-	var lectureRegisterRequest1 = LectureRegisterRequest(
-		name = "프로그래밍 강의",
-		maxStudentCnt = 10,
-		price = 10000
-	)
-
-	var lectureRegisterRequest2 = LectureRegisterRequest(
-		name = "투자 강의",
-		maxStudentCnt = 20,
-		price = 20000
-	)
-
-	var lectureRegisterRequest3 = LectureRegisterRequest(
-		name = "먹방 강의",
-		maxStudentCnt = 30,
-		price = 30000
-	)
-
-	var lectureRegisterRequest4 = LectureRegisterRequest(
-		name = "요리 강의",
-		maxStudentCnt = 40,
-		price = 40000
-	)
-
 	@BeforeEach
 	fun setup() {
 		memberService.register(memberRegisterRequest)
 		memberService.login(memberRegisterRequest.email, memberRegisterRequest.password)
+	}
+
+	@AfterEach
+	fun finally() {
+		redisTemplate.connectionFactory?.connection?.serverCommands()?.flushAll()
 	}
 
 	@Nested
@@ -105,14 +92,16 @@ class LectureServiceTest {
 
 		@Test
 		fun `정상적인 경우`() {
-			val memberDetails = SecurityContextHolder.getContext().authentication.principal as MemberDetails
+			val memberDetails =
+				SecurityContextHolder.getContext().authentication.principal as MemberDetails
 			val member = memberDetails.member
 			assertEquals(MemberType.TEACHER, member.memberType)
 
 			lectureService.register(member.id!!, lectureRegisterRequest)
 
-			val lecture = lectureRepository.findByTeacherIdAndName(member.id!!, lectureRegisterRequest.name)
-				.orElseThrow { Exception() }
+			val lecture =
+				lectureRepository.findByTeacherIdAndName(member.id!!, lectureRegisterRequest.name)
+					.orElseThrow { Exception() }
 			assertEquals(lectureRegisterRequest.name, lecture.name)
 			assertEquals(lectureRegisterRequest.maxStudentCnt, lecture.maxStudentCnt)
 			assertEquals(lectureRegisterRequest.price, lecture.price)
@@ -125,10 +114,11 @@ class LectureServiceTest {
 
 		@BeforeEach
 		fun setup() {
-			val memberDetails = SecurityContextHolder.getContext().authentication.principal as MemberDetails
+			val memberDetails =
+				SecurityContextHolder.getContext().authentication.principal as MemberDetails
 			val member = memberDetails.member
 
-			for (i: Long in 0L..25L) {
+			for (i: Long in 1L..25L) {
 				val newLectureRegisterRequest = LectureRegisterRequest(
 					name = "프로그래밍 강의${i}",
 					maxStudentCnt = 10 * i.toInt(),
@@ -146,7 +136,8 @@ class LectureServiceTest {
 		fun `정상적인 경우`() {
 			memberService.login(memberRegisterRequest1.email, memberRegisterRequest1.password)
 
-			val memberDetails = SecurityContextHolder.getContext().authentication.principal as MemberDetails
+			val memberDetails =
+				SecurityContextHolder.getContext().authentication.principal as MemberDetails
 			val member = memberDetails.member
 
 			val lectures = lectureRepository.findAll()
@@ -154,7 +145,8 @@ class LectureServiceTest {
 
 			lectureService.enroll(member.id!!, lectureIdList)
 
-			val enrollLectureList = enrollLectureRepository.findByLectureIdInAndStudentId(lectureIdList, member.id!!)
+			val enrollLectureList =
+				enrollLectureRepository.findByLectureIdInAndStudentId(lectureIdList, member.id!!)
 
 			assertEquals(lectures.size, enrollLectureList.size)
 		}
@@ -169,11 +161,12 @@ class LectureServiceTest {
 			memberService.register(memberRegisterRequest1)
 			memberService.register(memberRegisterRequest2)
 
-			// 첫번째 회원
-			var memberDetails = SecurityContextHolder.getContext().authentication.principal as MemberDetails
+			// 첫번째 강사 강의 등록
+			var memberDetails =
+				SecurityContextHolder.getContext().authentication.principal as MemberDetails
 			var member = memberDetails.member
 
-			for (i: Long in 1L..45L) { // 강의 등록
+			for (i: Long in 1L..35L) { // 강의 등록
 				val newLectureRegisterRequest = LectureRegisterRequest(
 					name = "프로그래밍 강의${i}",
 					maxStudentCnt = 10 * i.toInt(),
@@ -183,6 +176,32 @@ class LectureServiceTest {
 				lectureService.register(member.id!!, newLectureRegisterRequest)
 			}
 
+			// 두번째 강사 강의 등록
+
+			memberService.login(memberRegisterRequest2.email, memberRegisterRequest2.password)
+
+			memberDetails =
+				SecurityContextHolder.getContext().authentication.principal as MemberDetails
+			member = memberDetails.member
+
+			for (i: Long in 36L..45L) { // 강의 등록
+				val newLectureRegisterRequest = LectureRegisterRequest(
+					name = "프로그래밍 강의${i}",
+					maxStudentCnt = 10 * i.toInt(),
+					price = 10000 * i
+				)
+				lectureRegisterRequestList.add(newLectureRegisterRequest)
+				lectureService.register(member.id!!, newLectureRegisterRequest)
+			}
+
+			///
+			// 첫번째 회원
+			memberService.login(memberRegisterRequest1.email, memberRegisterRequest1.password)
+
+			memberDetails =
+				SecurityContextHolder.getContext().authentication.principal as MemberDetails
+			member = memberDetails.member
+
 			val lectures = lectureRepository.findAll()
 			var lectureIdList = lectures.map { it.id!! }
 
@@ -191,21 +210,25 @@ class LectureServiceTest {
 			// 두번째 회원
 			memberService.login(memberRegisterRequest1.email, memberRegisterRequest1.password)
 
-			memberDetails = SecurityContextHolder.getContext().authentication.principal as MemberDetails
+			memberDetails =
+				SecurityContextHolder.getContext().authentication.principal as MemberDetails
 			member = memberDetails.member
 
-			lectureIdList = lectures.subList(lectures.size / 2, lectures.size).map { it.id!! } // 뒤 절반만
+			lectureIdList =
+				lectures.subList(lectures.size / 2, lectures.size).map { it.id!! } // 뒤 절반만
 
 			lectureService.enroll(member.id!!, lectureIdList)
 
 			// 세번째 회원
 			memberService.login(memberRegisterRequest2.email, memberRegisterRequest2.password)
 
-			memberDetails = SecurityContextHolder.getContext().authentication.principal as MemberDetails
+			memberDetails =
+				SecurityContextHolder.getContext().authentication.principal as MemberDetails
 			member = memberDetails.member
 
 			lectureIdList =
-				lectures.subList(lectures.size * 2 / 3 - 1, lectures.size * 2 / 3).map { it.id!! } // 2/3 지점 강의만
+				lectures.subList(lectures.size * 2 / 3 - 1, lectures.size * 2 / 3)
+					.map { it.id!! } // 2/3 지점 강의만
 
 			lectureService.enroll(member.id!!, lectureIdList)
 		}
@@ -213,7 +236,6 @@ class LectureServiceTest {
 		@Test
 		fun `최신 순 정렬`() {
 			val lectureList = lectureService.lectureList(0, LectureListOrderType.RECENT_REGISTERED)
-			println(lectureList)
 			assertEquals(lectureListPageLimit, lectureList.size)
 			assertEquals(2, lectureList[0].currentStudentCnt)
 		}
@@ -221,7 +243,6 @@ class LectureServiceTest {
 		@Test
 		fun `신청자 많은 순 정렬`() {
 			val lectureList = lectureService.lectureList(0, LectureListOrderType.ENROLLED_COUNT)
-			println(lectureList)
 			assertEquals(lectureListPageLimit, lectureList.size)
 			assertEquals(3, lectureList[0].currentStudentCnt)
 		}
@@ -229,7 +250,6 @@ class LectureServiceTest {
 		@Test
 		fun `신청률 높은 순 정렬`() {
 			val lectureList = lectureService.lectureList(0, LectureListOrderType.ENROLLED_RATIO)
-			println(lectureList)
 			assertEquals(lectureListPageLimit, lectureList.size)
 			assertEquals(0.1, lectureList[0].enrollRatio)
 		}

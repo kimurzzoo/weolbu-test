@@ -6,5 +6,10 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface EnrollLectureRepository : JpaRepository<EnrollLecture, Long> {
-	fun findByLectureIdInAndStudentId(lectureIdList: List<Long>, studentId: Long): List<EnrollLecture>
+	fun findByLectureIdInAndStudentId(
+		lectureIdList: List<Long>,
+		studentId: Long
+	): List<EnrollLecture>
+
+	fun findByLectureId(lectureId: Long): List<EnrollLecture>
 }

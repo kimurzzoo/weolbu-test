@@ -39,7 +39,15 @@ class LectureService(
 		try {
 			val lectureEntityList = lectureRepository.findByIdInAndIsDeletedFalse(lectureList)
 			if (lectureEntityList.size != lectureList.size) {
+				val allLectures = lectureRepository.findAll()
 				throw IllegalArgumentException("Invalid Lecture")
+			}
+			val alreadyEnrollLectureList = enrollLectureRepository.findByLectureIdInAndStudentId(
+				lectureEntityList.map { it.id!! },
+				studentId
+			)
+			if (alreadyEnrollLectureList.isNotEmpty()) {
+				throw IllegalArgumentException("already enrolled : $alreadyEnrollLectureList")
 			}
 
 			lectureEntityList.forEach {
@@ -62,6 +70,7 @@ class LectureService(
 				notEnrolled = notEnrolledList
 			)
 		} catch (e: Exception) {
+			e.printStackTrace()
 			enrollList.forEach {
 				valueOperations.increment("lecture:${it.id!!}")
 			}
@@ -70,8 +79,15 @@ class LectureService(
 
 	}
 
-	@Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true, noRollbackFor = [Exception::class])
-	fun lectureList(page: Int, lectureListOrderType: LectureListOrderType): List<LectureListWithDSLDTO> {
+	@Transactional(
+		isolation = Isolation.READ_COMMITTED,
+		readOnly = true,
+		noRollbackFor = [Exception::class]
+	)
+	fun lectureList(
+		page: Int,
+		lectureListOrderType: LectureListOrderType
+	): List<LectureListWithDSLDTO> {
 		val pageable = PageRequest.of(page, lectureListPageLimit)
 		return lectureRepository.lectureListWithDSL(lectureListOrderType, pageable)
 	}
