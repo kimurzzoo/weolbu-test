@@ -1,6 +1,6 @@
 weolbu-test
 
-API 스펙
+## API 스펙
 
 1. POST /member/register
     - request
@@ -19,7 +19,7 @@ API 스펙
         - 이메일과 전화번호는 형식에 맞아야 하고, 비밀번호는 6자 이상 10자 이하, 영문 대, 소문자, 숫자 중 두 가지 이상의 조합이어야 합니다.
         - 회원 유형은 학생, 강사 둘 중 하나여야 합니다.
 
-#          
+#            
 
 2. POST /member/login
     - request
@@ -77,4 +77,26 @@ API 스펙
     - description
         - 수강신청 API 입니다.
         - 강의 ID 목록을 넣어 요청하면, 수강신청 실패한 강의 이름 목록을 응답합니다. 없으면 빈 리스트를 응답합니다.
-    
+
+## 애플리케이션 실행 절차
+
+1. 설치 목록
+    - JDK 21
+        - JDK 세팅 혹은 환경변수 설정 필요
+    - H2 Database
+    - Redis
+        - Windows는 Memurai
+    - Gradle
+
+2. JAR 패키지 파일 생성 명령어
+
+- gradlew clean
+- gradlew build
+  혹은
+- gradlew bootJar
+
+3. 실행 명령어
+
+- java -jar weolbutest-0.0.1-SNAPSHOT.jar
+  혹은
+- gradlew bootRun
