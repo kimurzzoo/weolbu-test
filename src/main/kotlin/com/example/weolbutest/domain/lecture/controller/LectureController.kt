@@ -4,10 +4,12 @@ import com.example.weolbutest.db.repository.lecture.dao.LectureListWithDSLDTO
 import com.example.weolbutest.domain.auth.util.AuthUtil
 import com.example.weolbutest.domain.lecture.enm.LectureListOrderType
 import com.example.weolbutest.domain.lecture.request.LectureEnrollRequest
+import com.example.weolbutest.domain.lecture.request.LectureListRequest
 import com.example.weolbutest.domain.lecture.request.LectureRegisterRequest
 import com.example.weolbutest.domain.lecture.response.LectureEnrollResponse
 import com.example.weolbutest.domain.lecture.service.LectureService
 import jakarta.validation.Valid
+import org.springdoc.core.annotations.ParameterObject
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -22,10 +24,9 @@ class LectureController(private val lectureService: LectureService) {
 
 	@GetMapping("/list")
 	fun lectureList(
-		@RequestParam page: Int,
-		@RequestParam orderType: String
+		@ParameterObject @Valid req: LectureListRequest
 	): List<LectureListWithDSLDTO> {
-		return lectureService.lectureList(page, LectureListOrderType.valueOf(orderType))
+		return lectureService.lectureList(req.page, LectureListOrderType.valueOf(req.lectureListOrderType))
 	}
 
 	@PostMapping("/enroll")
