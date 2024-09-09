@@ -36,9 +36,15 @@ class SecurityConfig(private val jwtFilter: JwtFilter) {
 			.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter::class.java)
 			.authorizeHttpRequests { authRequest ->
 				authRequest
+					.requestMatchers( // root 누구나 접근가능
+						"/swagger/**",
+						"/swagger-ui/**",
+						"/v3/api-docs/**"
+					).permitAll()
 					.requestMatchers("/h2-console/**").permitAll()
 					.requestMatchers("/member/**").permitAll()
-					.requestMatchers("/lecture/teacher/**").hasAuthority("ROLE_${MemberType.TEACHER.name}")
+					.requestMatchers("/lecture/teacher/**")
+					.hasAuthority("ROLE_${MemberType.TEACHER.name}")
 					.anyRequest().authenticated()
 			}
 

@@ -21,3 +21,7 @@ cipher:
 jwt:
   secret-key: 345w89oJs49y42u28Q23tFG3498g49WE
   expiration: 180000
+
+springdoc:
+  swagger-ui:
+    version:

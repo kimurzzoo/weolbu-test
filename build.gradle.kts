@@ -33,6 +33,7 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("com.querydsl:querydsl-jpa:5.1.0:jakarta")
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
 	kapt("com.querydsl:querydsl-apt:5.1.0:jakarta")
 	kapt("jakarta.annotation:jakarta.annotation-api")
 	kapt("jakarta.persistence:jakarta.persistence-api")

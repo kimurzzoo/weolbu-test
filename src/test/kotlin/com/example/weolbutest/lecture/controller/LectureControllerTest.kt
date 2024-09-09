@@ -67,7 +67,8 @@ class LectureControllerTest {
 	inner class RegisterTest {
 		@Test
 		fun `정상적인 경우`() {
-			val loginResponse = memberService.login(memberRegisterRequest.email, memberRegisterRequest.password)
+			val loginResponse =
+				memberService.login(memberRegisterRequest.email, memberRegisterRequest.password)
 			jwt = loginResponse.accessToken
 
 			// JSON 형식의 문자열로 변환
@@ -96,7 +97,8 @@ class LectureControllerTest {
 			)
 			memberService.register(memberRegisterRequest)
 
-			val loginResponse = memberService.login(memberRegisterRequest.email, memberRegisterRequest.password)
+			val loginResponse =
+				memberService.login(memberRegisterRequest.email, memberRegisterRequest.password)
 			jwt = loginResponse.accessToken
 
 			// JSON 형식의 문자열로 변환
@@ -115,7 +117,8 @@ class LectureControllerTest {
 
 		@Test
 		fun `최대 수강인원이 비정상적인 경우`() {
-			val loginResponse = memberService.login(memberRegisterRequest.email, memberRegisterRequest.password)
+			val loginResponse =
+				memberService.login(memberRegisterRequest.email, memberRegisterRequest.password)
 			jwt = loginResponse.accessToken
 
 			lectureRegisterRequest.maxStudentCnt = -1
